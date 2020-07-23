@@ -1,17 +1,23 @@
 package com.codingChallenge.database
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
-import com.codingChallenge.models.CardsItem
+import androidx.lifecycle.LiveData
+import androidx.room.*
 
 @Dao
 interface CardItemDao {
 
-    @Query("SELECT * FROM cardsitem")
-    suspend fun getAllCardItems(): List<CardsItem>
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertCard(cards:CardItemEntity)
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun InsertCardItems(cards:List<CardsItem>)
+    @Query("SELECT cards FROM CardItemEntity limit 1")
+    fun getAll(): LiveData<String>
+
+    @Query("Delete FROM CardItemEntity ")
+    suspend fun deleteAll()
+
+    @Transaction
+    suspend fun insertData(cards: CardItemEntity){
+        deleteAll()
+        insertCard(cards)
+    }
 }
