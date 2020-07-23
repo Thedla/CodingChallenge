@@ -3,6 +3,7 @@ package com.codingChallenge.models
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
 import com.google.gson.annotations.SerializedName
 
 
@@ -10,15 +11,13 @@ data class HomeCardResponse(@SerializedName("page")
                             val page: Page?)
 
 data class Page(@SerializedName("cards")
-                val cards: List<CardsItem>?)
+                 val cards: List<CardsItem>?)
 
-@Entity
-data class CardsItem(
-                    @PrimaryKey(autoGenerate = true) val id:Int,
-                    @SerializedName("card_type")
-                     val cardType: String? = "",
+
+data class CardsItem(@SerializedName("card_type")
+                     val cardType: String = "",
                      @SerializedName("card")
-                     val card: Card?)
+                     val card: Card)
 
 data class Card(@SerializedName("attributes")
                 var attributes: Attributes?=null,
