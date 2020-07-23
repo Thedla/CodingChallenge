@@ -44,8 +44,10 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun observeldata() {
+        // Observe the cards list
         viewModel?.getCardsList()?.observe(this, Observer {
             it?.let {it ->
+                // update the adapter
                 adapter = HomeAdapter(it)
                 binding.cardsRecyclerViewHome.adapter = adapter
             }

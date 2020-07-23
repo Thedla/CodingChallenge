@@ -6,6 +6,7 @@ class Utils {
 
     companion object{
 
+        /** Get the Card type based on ID **/
         fun getCardType(type:Int):CardType{
             return when(type) {
                 1 -> CardType.TEXT
@@ -18,6 +19,7 @@ class Utils {
             }
         }
 
+        /** Get the Card Type ID based on  type **/
         fun getCardType(type: String):Int{
             return when {
                 CardType.TEXT.toString().equals(type,true) -> 1

@@ -78,6 +78,7 @@ class CardsViewHolder(val context: Context,val biniding:AdapterCardBinding): Rec
     }
 }
 
+/** card type text view holder **/
 class CardsViewTextHolder(val context: Context,val biniding:AdapterCardTypeTextBinding): RecyclerView.ViewHolder(biniding.root) {
 
     fun bind(cardItem: CardsItem){
