@@ -17,7 +17,10 @@ import com.codingChallenge.databinding.AdapterCardTypeTextBinding
 import com.codingChallenge.models.CardType
 import com.codingChallenge.models.CardsItem
 import com.codingChallenge.utils.Utils
+import com.squareup.picasso.Callback
+import com.squareup.picasso.NetworkPolicy
 import com.squareup.picasso.Picasso
+import java.lang.Exception
 
 
 /**
@@ -59,6 +62,8 @@ class CardsViewHolder(val context: Context,val biniding:AdapterCardBinding): Rec
     fun bind(cardItem: CardsItem){
         // bind the CardWrapper to layout
         biniding.cardWrapper = CardWrapper(context,cardItem)
+        val wrapper =CardWrapper(context,cardItem)
+        Log.i("suji","titleColor -> ${cardItem.card?.title?.attributes?.textColor} desc color -> ${cardItem.card?.description?.attributes?.textColor}" )
     }
 
     companion object {
@@ -71,8 +76,24 @@ class CardsViewHolder(val context: Context,val biniding:AdapterCardBinding): Rec
             if (url != null && url.isNotBlank()) {
                 Picasso.get()
                     .load(url)
+                    .error(R.drawable.ic_launcher_background)
+                    .networkPolicy(NetworkPolicy.OFFLINE)
                     .resize(width,height)
-                    .into(this)
+                    .into(this,object :Callback{
+                        override fun onSuccess() {
+                            //ignore it
+                        }
+
+                        override fun onError(e: Exception?) {
+
+                            // first time image load fail then load from network
+                            Picasso.get()
+                                .load(url)
+                                .error(R.drawable.ic_launcher_background)
+                                .resize(width,height)
+                                .into(this@bindImageUrl)
+                        }
+                    })
             }
         }
     }
