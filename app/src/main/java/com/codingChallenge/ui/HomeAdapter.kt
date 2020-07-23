@@ -1,7 +1,11 @@
 package com.codingChallenge.ui
 
+import android.content.Context
+import android.content.res.Resources
 import android.graphics.Color
+import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.databinding.BindingAdapter
@@ -9,49 +13,76 @@ import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.codingChallenge.R
 import com.codingChallenge.databinding.AdapterCardBinding
+import com.codingChallenge.databinding.AdapterCardTypeTextBinding
+import com.codingChallenge.models.CardType
 import com.codingChallenge.models.CardsItem
+import com.codingChallenge.utils.Utils
 import com.squareup.picasso.Picasso
+
 
 /**
  * Home Adapter to show the cars
  * @param cardsList list of card items
  */
-class HomeAdapter(private var cardsList: List<CardsItem>): RecyclerView.Adapter<CardsViewHolder>() {
+class HomeAdapter(private var cardsList: List<CardsItem>): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardsViewHolder {
-       return CardsViewHolder(DataBindingUtil.inflate(LayoutInflater.from(parent.context),R.layout.adapter_card,parent,false))
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return when(Utils.getCardType(viewType)){
+            CardType.TEXT -> CardsViewTextHolder(parent.context,DataBindingUtil.inflate(LayoutInflater.from(parent.context),R.layout.adapter_card_type_text,parent,false))
+            else -> CardsViewHolder(parent.context,DataBindingUtil.inflate(LayoutInflater.from(parent.context),R.layout.adapter_card,parent,false))
+        }
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return Utils.getCardType(cardsList[position].cardType ?: "")
     }
 
     override fun getItemCount(): Int { return cardsList.size }
 
-    override fun onBindViewHolder(holder: CardsViewHolder, position: Int) {
-        holder.bind(cardsList[position])
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        val type = Utils.getCardType(holder.itemViewType)
+        if(CardType.TEXT == type) {
+            val cardHolder = holder as? CardsViewTextHolder
+            cardHolder?.bind(cardsList[position])
+        }else{
+            val cardTextHolder = holder as? CardsViewHolder
+            cardTextHolder?.bind(cardsList[position])
+        }
     }
 }
 
 /**
  * CardsViewHolder used in HomeAdapter adapter viewholder
  */
-class CardsViewHolder(val biniding:AdapterCardBinding): RecyclerView.ViewHolder(biniding.root) {
+class CardsViewHolder(val context: Context,val biniding:AdapterCardBinding): RecyclerView.ViewHolder(biniding.root) {
 
     fun bind(cardItem: CardsItem){
         // bind the CardWrapper to layout
-        biniding.cardWrapper = CardWrapper(cardItem)
+        biniding.cardWrapper = CardWrapper(context,cardItem)
     }
 
     companion object {
         /**
          * display the image for recyclerview
          */
-        @BindingAdapter(value = ["setImageUrl"])
+        @BindingAdapter(value = ["setImageUrl","width","height"])
         @JvmStatic
-        fun ImageView.bindImageUrl(url: String?) {
+        fun ImageView.bindImageUrl(url: String?,width:Int,height:Int) {
             if (url != null && url.isNotBlank()) {
                 Picasso.get()
                     .load(url)
+                    .resize(width,height)
                     .into(this)
             }
         }
+    }
+}
+
+class CardsViewTextHolder(val context: Context,val biniding:AdapterCardTypeTextBinding): RecyclerView.ViewHolder(biniding.root) {
+
+    fun bind(cardItem: CardsItem){
+        // bind the CardWrapper to layout
+        biniding.cardWrapper = CardWrapper(context,cardItem)
     }
 }
 
@@ -59,28 +90,32 @@ class CardsViewHolder(val biniding:AdapterCardBinding): RecyclerView.ViewHolder(
  * @param cardItem display the card item in item
  * to use to set the adapter item
  */
-class CardWrapper(var cardItem:CardsItem){
+class CardWrapper(var context: Context,var cardItem:CardsItem){
 
     //Only Title type data
-    var getOnlyText :String = cardItem.card?.value ?: ""
-    var getOnlyTextColor:String = cardItem.card?.attributes?.textColor ?: ""
-    var getOnlyTextSize:Int = cardItem.card?.attributes?.font?.size ?: 18
+    fun getOnlyText():String = cardItem.card?.value ?: ""
+    fun getOnlyTextColor():Int = cardItem.card?.title?.attributes?.textColor?.let {Color.parseColor(it)} ?: Color.BLACK
+    fun getOnlyTextSize():Float = getScaleSize(cardItem.card?.attributes?.font?.size ?: 30)
 
     // Image data
-    var getImagePath : String = cardItem.card?.image?.url ?: ""
-    var getImageWidth :Int = cardItem.card?.image?.size?.width ?: 150
-    var getImageHeight :Int = cardItem.card?.image?.size?.height ?: 150
+    fun getImagePath(): String = cardItem.card?.image?.url ?: ""
+    fun getImageWidth():Int = cardItem.card?.image?.size?.width ?: 150
+    fun getImageHeight():Int = cardItem.card?.image?.size?.height ?: 150
+    fun getImageVisibility():Int = if(CardType.IMAGE_TITLE_DESCRIPTION.toString().equals(getCardType(),true)) View.VISIBLE else View.GONE
 
     //Title data
-    var getTitle :String = cardItem.card?.title?.value ?: ""
-    var getTitleTextColor:Int = cardItem.card?.title?.attributes?.textColor?.let { Color.parseColor(it) } ?: Color.WHITE
-    var getTitleTextSize:Int = cardItem.card?.title?.attributes?.font?.size ?: 18
+    fun getTitle():String = cardItem.card?.title?.value ?: ""
+    fun getTitleTextColor():Int = cardItem.card?.title?.attributes?.textColor?.let { Color.parseColor(it) } ?: Color.BLACK
+    fun getTitleTextSize():Float = getScaleSize(cardItem.card?.title?.attributes?.font?.size ?: 18)
 
     //Description data
-    var getDescription :String = cardItem.card?.description?.value ?: ""
-    var getDescriptionTitleColor :Int = cardItem.card?.description?.attributes?.textColor?.let { Color.parseColor(it) } ?: Color.WHITE
-    var getDescriptionTitleSize :Int = cardItem.card?.description?.attributes?.font?.size ?: 12
+    fun getDescription():String = cardItem.card?.description?.value ?: ""
+    fun getDescriptionTitleColor():Int = cardItem.card?.description?.attributes?.textColor?.let { Color.parseColor(it) } ?: Color.BLACK
+    fun getDescriptionTitleSize():Float = getScaleSize(cardItem.card?.description?.attributes?.font?.size ?: 12)
+    fun getDescriptionVisibility():Int = if(CardType.TEXT.toString().equals(getCardType(),true)) View.GONE else View.VISIBLE
 
-    var getCardType:String = cardItem.cardType ?: ""
+    fun getCardType():String = cardItem.cardType ?: ""
+    fun getScaleSize(size:Int) :Float = size * context.resources.displayMetrics.scaledDensity
+    fun getDensityScaleSize(size:Int) :Int = size * context.resources.displayMetrics.densityDpi
 }
 

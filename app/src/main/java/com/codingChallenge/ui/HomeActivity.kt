@@ -7,6 +7,8 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.codingChallenge.R
 import com.codingChallenge.databinding.ActivityHomeBinding
 import com.codingChallenge.models.CardType
@@ -18,7 +20,7 @@ class HomeActivity : AppCompatActivity() {
 
     var viewModel : HomeViewModel ?=null
     lateinit var binding: ActivityHomeBinding
-     var adapter: HomeAdapter ?= null
+    var adapter: HomeAdapter ?= null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,7 +37,7 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun init() {
-        binding.cardsRecyclerViewHome.layoutManager = GridLayoutManager(this,2)
+        binding.cardsRecyclerViewHome.layoutManager = LinearLayoutManager(this)
 
         adapter = HomeAdapter(viewModel?.getCardsList()?.value ?: emptyList())
         binding.cardsRecyclerViewHome.adapter = adapter
@@ -44,12 +46,8 @@ class HomeActivity : AppCompatActivity() {
     private fun observeldata() {
         viewModel?.getCardsList()?.observe(this, Observer {
             it?.let {it ->
-                 it.filter {
-                     it.cardType?.equals(CardType.IMAGE_TITLE_DESCRIPTION.toString(),true) ?: false
-                 }.let {
-                     adapter = HomeAdapter(it)
-                     binding.cardsRecyclerViewHome.adapter = adapter
-                 }
+                adapter = HomeAdapter(it)
+                binding.cardsRecyclerViewHome.adapter = adapter
             }
         })
     }
